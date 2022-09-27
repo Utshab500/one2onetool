@@ -1,0 +1,100 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- stage/*
+- release/*
+
+
+parameters:
+- name: vmImage
+  default: ubuntu-latest
+- name: dockerServiceConnection
+  default: containerRegistry
+- name: kubernetesServiceConnection
+  default: k8-serviceconnection
+- name: imageName
+  default: accenture-sg
+
+variables:
+- group: cicd-deploy
+- name: ENV
+  ${{ if contains(variables['Build.SourceBranch'], 'release') }}:
+    value: release
+  ${{ elseif contains(variables['Build.SourceBranch'], 'stage') }}:
+    value: stage
+  ${{ else }}:
+    value: dev
+
+stages:
+- stage: unit_test_stage  
+  displayName: 'Unit Test Stage'
+  pool:
+    vmImage: ${{ parameters.vmImage }}
+  jobs:
+  - template: job-templates/unit-test.yaml
+
+- stage: image_build  
+  displayName: 'Image Build & Push Stage'
+  pool:
+    vmImage: ${{ parameters.vmImage }}
+  jobs:
+  - template: job-templates/prepare-build.yaml
+    parameters:
+      imageName: ${{ parameters.imageName }}
+  - template: job-templates/docker-build.yaml
+    parameters:
+      dockerServiceConnection: ${{ parameters.dockerServiceConnection }}
+
+- stage: dev_deploy
+  dependsOn: image_build
+  condition: and(succeeded('image_build'), and(ne(startsWith(variables['Build.SourceBranch'], 'refs/heads/stage/'), 'true'), ne(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), 'true')))
+  displayName: 'Dev Deploy'
+  pool:
+    vmImage: ${{ parameters.vmImage }}
+  jobs:
+  - template: job-templates/prepare-deploy-env.yaml
+  - template: job-templates/prepare-deploy.yaml
+  - template: job-templates/prepare-cluster-env.yaml
+    parameters:
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+  - template: job-templates/kubernetes-deploy.yaml
+    parameters:
+      dockerServiceConnection: ${{ parameters.dockerServiceConnection }}
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+
+- stage: stage_deploy
+  dependsOn: image_build
+  condition: and(succeeded('image_build'), startsWith(variables['Build.SourceBranch'], 'refs/heads/stage/'))
+  displayName: 'Stage Deploy'
+  pool:
+    vmImage: ${{ parameters.vmImage }}
+  jobs:
+  - template: job-templates/prepare-deploy-env.yaml
+  - template: job-templates/prepare-deploy.yaml
+  - template: job-templates/prepare-cluster-env.yaml
+    parameters:
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+  - template: job-templates/kubernetes-deploy.yaml
+    parameters:
+      dockerServiceConnection: ${{ parameters.dockerServiceConnection }}
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+
+- stage: prod_deploy
+  dependsOn: image_build
+  condition: and(succeeded('image_build'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))
+  displayName: 'Prod Deploy'
+  pool:
+    vmImage: ${{ parameters.vmImage }}
+  jobs:
+  - template: job-templates/prepare-deploy-env.yaml
+  - template: job-templates/prepare-deploy.yaml
+  - template: job-templates/prepare-cluster-env.yaml
+    parameters:
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+  - template: job-templates/kubernetes-deploy.yaml
+    parameters:
+      dockerServiceConnection: ${{ parameters.dockerServiceConnection }}
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
