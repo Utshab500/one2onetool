@@ -15,8 +15,6 @@ parameters:
   default: containerRegistry
 - name: kubernetesServiceConnection
   default: k8-serviceconnection
-- name: imageName
-  default: accenture-sg
 
 variables:
 - group: cicd-deploy
@@ -43,7 +41,7 @@ stages:
   jobs:
   - template: job-templates/prepare-build.yaml
     parameters:
-      imageName: ${{ parameters.imageName }}
+      imageName: $(Build.Repository.Name)
   - template: job-templates/docker-build.yaml
     parameters:
       dockerServiceConnection: ${{ parameters.dockerServiceConnection }}
