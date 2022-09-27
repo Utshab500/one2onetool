@@ -10,9 +10,9 @@ jobs:
 
       if [[ $(ENV) == 'release' ]]
       then
-        DataFile=Responses.json
+        DataFile=Questions.json
       else
-        DataFile=Responses-other.json
+        DataFile=Questions-test.json
       fi
 
       cat <<EOF | tee set-env.sh

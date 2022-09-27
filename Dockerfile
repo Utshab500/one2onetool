@@ -12,19 +12,23 @@ RUN pwd \
 
 
 # RUNTIME STAGE
-FROM gcr.io/distroless/nodejs:18
+FROM node:18.7-alpine
 
-COPY --from=build /var/app/node_modules /var/app/node_modules
-COPY --from=build /var/app/controllers /var/app/controllers
-COPY --from=build /var/app/data /var/app/data
-COPY --from=build /var/app/helpers /var/app/helpers
-COPY --from=build /var/app/models /var/app/models
-COPY --from=build /var/app/routes /var/app/routes
-COPY --from=build /var/app/views /var/app/views
-COPY --from=build /var/app/index.js /var/app/index.js
+COPY --chown=node --from=build /var/app/node_modules /var/app/node_modules
+COPY --chown=node --from=build /var/app/controllers /var/app/controllers
+COPY --chown=node --from=build /var/app/data /var/app/data
+COPY --chown=node --from=build /var/app/helpers /var/app/helpers
+COPY --chown=node --from=build /var/app/models /var/app/models
+COPY --chown=node --from=build /var/app/routes /var/app/routes
+COPY --chown=node --from=build /var/app/views /var/app/views
+COPY --chown=node --from=build /var/app/index.js /var/app/index.js
 
 
+USER node
 WORKDIR /var/app
 
+RUN pwd \
+    && ls -l
+
 EXPOSE 3000
-CMD [ "index.js" ]
+ENTRYPOINT [ "node_modules/forever/bin/forever", "-w", "index.js" ]
