@@ -1,0 +1,38 @@
+jobs:
+- job: prepare_cluster
+  dependsOn: generate_deploy_config
+  displayName: 'Prepare Cluster Environment'
+  steps:
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      artifactName: 'environment'
+      downloadPath: '$(System.ArtifactsDirectory)'
+    displayName: 'Download env script'
+
+  - bash: |
+      #!/bin/bash
+
+      ls -l $(System.ArtifactsDirectory)
+      chmod +x $(System.ArtifactsDirectory)/environment/*
+      source $(System.ArtifactsDirectory)/environment/*
+
+      echo "Namespace=$NAME_SPACE"
+      echo "##vso[task.setvariable variable=NameSpace;isoutput=true]$NAME_SPACE"
+
+      cat <<EOF | tee $(System.ArtifactsDirectory)/k8-namespace.yaml
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: $NAME_SPACE
+      EOF
+    name: setNameSpace
+    displayName: 'Set Namespace'
+
+  - task: Kubernetes@1
+    displayName: 'Create namespace'
+    inputs:
+        connectionType: Kubernetes Service Connection
+        kubernetesServiceEndpoint: ${{ parameters.kubernetesServiceConnection }}
+        command: apply
+        arguments: -f $(System.ArtifactsDirectory)/k8-namespace.yaml
+        outputFormat: yaml

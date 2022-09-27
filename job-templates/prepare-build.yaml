@@ -1,0 +1,21 @@
+jobs:
+- job: prepareBuild
+  displayName: 'Prepare Before Build'
+  steps:
+  - script: |
+        #!/bin/bash
+
+        echo "Environment=$(ENV)"
+        if [[ $(ENV) == 'release' ]]
+        then
+          echo "Dockerfile setting up to Dockerfile-distroless"
+          echo "##vso[task.setvariable variable=Dockerfile;isoutput=true]Dockerfile-distroless"
+        else
+          echo "Dockerfile setting up to Dockerfile"
+          echo "##vso[task.setvariable variable=Dockerfile;isoutput=true]Dockerfile"
+        fi
+        echo "##vso[task.setvariable variable=ImageName;isoutput=true]${{ parameters.imageName }}"
+        echo "##vso[task.setvariable variable=Tag;isoutput=true]$(Build.BuildNumber)"
+
+    name: setBuildEnv
+    displayName: 'Set Environment Variable' 

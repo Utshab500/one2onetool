@@ -1,0 +1,43 @@
+jobs:
+- job: generate_deploy_config
+  dependsOn: prepare_env
+  displayName: Generate Deployment Config
+  steps:
+  - bash: sudo apt-get install gettext -y
+    displayName: 'Prepare Substitution'
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      artifactName: 'environment'
+      downloadPath: '$(System.ArtifactsDirectory)'
+
+  - bash: |
+      #!/bin/bash
+
+      ls -l $(System.ArtifactsDirectory)
+      chmod +x $(System.ArtifactsDirectory)/environment/*
+      source $(System.ArtifactsDirectory)/environment/*
+
+      echo "NAMES_PACE=$NAME_SPACE"
+
+      mkdir deploy_config
+
+      for i in $(ls manifests)
+      do
+        envsubst < manifests/$i > deploy_config/$i
+      done
+
+      ls -l deploy_config/
+      for i in $(ls deploy_config)
+      do
+        cat deploy_config/$i
+      done
+
+      mv deploy_config $(Build.ArtifactStagingDirectory)/deploy_config
+    displayName: 'Environment Substitution'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish deploy config'
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)/deploy_config
+      ArtifactName: 'deploy-config'

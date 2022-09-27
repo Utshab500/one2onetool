@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: accenture-sg
+  name: accenture-sg
+  namespace: $NAME_SPACE
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: accenture-sg
+  template:
+    metadata:
+      labels:
+        app: accenture-sg
+    spec:
+      containers:
+      - image: $IMAGE_NAME
+        name: accenture-sg
+        env:
+        - name: DATA_FILE
+          value: $DATA_FILE
+      imagePullSecrets:
+      - name: regcred

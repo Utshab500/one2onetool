@@ -1,0 +1,33 @@
+jobs:
+- job: prepare_env
+  variables:
+    ImageName: $[ stageDependencies.image_build.prepareBuild.outputs['setBuildEnv.ImageName'] ]
+    Tag: $[ stageDependencies.image_build.prepareBuild.outputs['setBuildEnv.Tag'] ]
+  displayName: Prepare Environment
+  steps:
+  - bash: |
+      #!/bin/bash
+
+      if [[ $(ENV) == 'release' ]]
+      then
+        DataFile=Responses.json
+      else
+        DataFile=Responses-other.json
+      fi
+
+      cat <<EOF | tee set-env.sh
+        export NAME_SPACE=$PROJECT_NAME-$(ENV)
+        export DATA_FILE=$DataFile
+        export IMAGE_NAME=$CR_REPO/$(ImageName):$(Tag)
+      EOF
+
+      mkdir $(Build.ArtifactStagingDirectory)/environment
+      mv set-env.sh $(Build.ArtifactStagingDirectory)/environment/set-env.sh
+
+    displayName: 'Prepare Environment Substitution Script'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish env script'
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)/environment
+      ArtifactName: 'environment'

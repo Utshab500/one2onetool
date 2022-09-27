@@ -1,0 +1,36 @@
+jobs:
+- job: build_push
+  dependsOn: prepareBuild
+  variables:
+    ImageName: $[ dependencies.prepareBuild.outputs['setBuildEnv.ImageName'] ]
+    Tag: $[ dependencies.prepareBuild.outputs['setBuildEnv.Tag'] ]
+    Dockerfile: $[ dependencies.prepareBuild.outputs['setBuildEnv.Dockerfile'] ]
+  displayName: 'Docker Build & Push'
+  steps:
+  - script: docker version
+    displayName: 'Check Docker Engine'
+
+  - script: |
+      #!/bin/bash
+
+      echo "Dockerfile=$(Dockerfile)"
+      docker container run --rm -i hadolint/hadolint hadolint - < $(Dockerfile)
+
+    displayName: 'Dockerfile Validate'
+
+  - task: Docker@2
+    displayName: Build and Push
+    inputs:
+      command: buildAndPush
+      containerRegistry: ${{ parameters.dockerServiceConnection }}
+      Dockerfile: $(Dockerfile)
+      repository: $(ImageName)
+      tags: $(Tag)
+
+  - script: |
+      #!/bin/bash
+
+      docker container prune -f
+      docker images prune -a
+
+    displayName: 'Build Agent Cleanup'

@@ -1,0 +1,12 @@
+jobs:
+- job:
+  displayName: Execute Unit Test Case
+  steps:
+  - script: node -v
+    displayName: 'Check Node Runtime Version'
+
+  - script: npm ci
+    displayName: 'Install node dependency'
+
+  - script: npm test
+    displayName: 'Run Unit Test'
