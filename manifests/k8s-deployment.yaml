@@ -2,22 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: accenture-sg
-  name: accenture-sg
+    app: $APP_NAME
+  name: $APP_NAME
   namespace: $NAME_SPACE
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: accenture-sg
+      app: $APP_NAME
   template:
     metadata:
       labels:
-        app: accenture-sg
+        app: $APP_NAME
     spec:
       containers:
       - image: $IMAGE_NAME
-        name: accenture-sg
+        name: $APP_NAME
         env:
         - name: DATA_FILE
           value: $DATA_FILE

@@ -16,6 +16,7 @@ jobs:
       fi
 
       cat <<EOF | tee set-env.sh
+        export APP_NAME=$BUILD_REPOSITORY_NAME
         export NAME_SPACE=$PROJECT_NAME-$(ENV)
         export DATA_FILE=$DataFile
         export IMAGE_NAME=$CR_REPO/$(ImageName):$(Tag)
