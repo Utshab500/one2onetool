@@ -12,7 +12,7 @@ Following the above branching strategy triggers are configured as such that any 
 
 ### Deployment Strategy
 Considering the environments I have considered below facts
-1. `dev/stage` environments would use **_Responses-other.json_** and `production` environment would use **_Responses.json_** as `DATA_FILE`.
+1. `dev/stage` environments would use **_Questions-test.json_** and `production` environment would use **_Questions.json_** as `DATA_FILE`.
 2. Deploying the application in seperate `namespace` in the **k8-cluster** for specific environment.
 3. Having the application deployed on **_distroless_** containers for **production** environment for added security.
 4. Images are versioned with `builed number` in ACR.
@@ -20,23 +20,23 @@ Considering the environments I have considered below facts
 # How to access the deployed application
 1. Follow the **Instructions** section to deploy the application
 2. Once pipeline is successfully completed go the **k8-cluster**.
-3. List namespaces. Namespaces are created as $PROJECT_NAME-$ENV. In my case `accenture-dev/accenture-stage/accenture-release`
+3. List namespaces. Namespaces are created as $PROJECT_NAME-$ENV. In my case `one2one-dev/one2one-stage/one2one-release`
 ```
 kubectl get namespace
 ```
-![image](https://user-images.githubusercontent.com/34933018/184546905-411b1bdc-e2ff-4b20-8ae8-17da227969ae.png)
+![image](https://user-images.githubusercontent.com/34933018/192851840-5ecd83f1-e225-450e-ac4e-2505d5f51762.png)
+
 
 4. List all resources in the specific namespace
 ```
-kubectl get all -n accenture-dev
+kubectl get all -n one2one-stage
 ```
-![image](https://user-images.githubusercontent.com/34933018/184546923-e903d8cc-c94e-4a3f-bd14-286c66a604c2.png)
+![image](https://user-images.githubusercontent.com/34933018/192852193-7213b330-beec-4833-9dce-841144bbf8d9.png)
 
-5. Verify all the resources are running. Then take a note of the **EXTERNAL-IP** coloumn of `service/accenture-sg-svc`.
+5. Verify all the resources are running. Then take a note of the **EXTERNAL-IP** coloumn of `service/one2onetool-svc`.
 6. Go to `http://<EXTERNAL-IP>:8081` in the browser and output should be as below.
 
-![image](https://user-images.githubusercontent.com/34933018/184547399-5feceb0e-9969-4cc4-b5ad-b08885c7f166.png)
-
+![image](https://user-images.githubusercontent.com/34933018/192852413-f6c39bb8-f7be-4012-9281-cbb99cb122bb.png)
 
 # Instructions
 Here I have used Azure Cloud for the resources and Azure DevOps as CI/CD pipeline
@@ -130,10 +130,11 @@ Here I configure alert for the build pipeline so that an alert is generated when
 ### 5. Create Pipeline
 1. Go to *Pipelines>New pipeline*.
 2. Choose *Azure Repos Git* as I have already imported from my personal GitHub to specific Azure Subscription.
-3. Select the **imported repo**. In my case `cicd-deploy-accenture-sg-poc.git`.
+3. Select the **imported repo**. In my case `one2onetool`.
 4. Click **Run**.
 5. Pipeline should start to run and looks as below.
 
-![image](https://user-images.githubusercontent.com/34933018/184545724-0e0dfb7b-3811-4ba7-b8aa-7026182f2084.png)
+![image](https://user-images.githubusercontent.com/34933018/192853041-b233a150-5f1c-4ecc-a933-7bf5c5994e53.png)
+
 
 
